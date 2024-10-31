@@ -141,25 +141,32 @@ class DovetailStorageGrid:
     # Create a tray with given size specified in number of grid cells
     # Plus if there is room, cut a small area in the front suitable for a
     # label and acting as a handle.
-    def label_tray(self, x=1, y=1, label_limit=10):
-        nozzle_diameter = 0.4
-        label_available_y = (
-            (self.grid_y * (1-self.dovetail_length_fraction))/2
-            - self.dovetail_gap
-            - nozzle_diameter*2
+    def label_tray(self, x=1, y=1, label_height=10):
+        label_size = label_height/math.sqrt(2)
+
+        tray = self.tray(x,y) - (
+            cq.Workplane("YZ")
+            .lineTo(  label_size,               self.grid_z, forConstruction = True)
+            .lineTo( -self.dovetail_protrusion, self.grid_z)
+            .lineTo( -self.dovetail_protrusion, self.grid_z - self.dovetail_protrusion - label_size)
+            .close()
+            .extrude(x*self.grid_x)
         )
-        label_size = min(label_available_y, label_limit/math.sqrt(2))
 
-        tray = self.tray(x,y)
-
-        if label_size > 0:
-            tray = tray - (
-                cq.Workplane("YZ")
-                .lineTo(  label_size,               self.grid_z, forConstruction = True)
-                .lineTo( -self.dovetail_protrusion, self.grid_z)
-                .lineTo( -self.dovetail_protrusion, self.grid_z - self.dovetail_protrusion - label_size)
-                .close()
-                .extrude(x*self.grid_x)
-            )
+        tray = tray - (
+            cq.Workplane("YZ").workplane(offset=x*self.grid_x)
+            .lineTo(  label_size+self.dovetail_protrusion, self.grid_z, forConstruction = True)
+            .lineTo( -self.dovetail_protrusion,            self.grid_z)
+            .lineTo( -self.dovetail_protrusion,            self.grid_z - self.dovetail_protrusion*2 - label_size)
+            .lineTo(  label_size+self.dovetail_protrusion, self.grid_z - self.dovetail_protrusion*2 - label_size)
+            .close()
+            .workplane(offset = -self.dovetail_protrusion - self.dovetail_gap)
+            .lineTo(  label_size,                          self.grid_z, forConstruction = True)
+            .lineTo( -self.dovetail_protrusion,            self.grid_z)
+            .lineTo( -self.dovetail_protrusion,            self.grid_z - self.dovetail_protrusion - label_size)
+            .lineTo(  label_size,                          self.grid_z - self.dovetail_protrusion - label_size)
+            .close()
+            .loft()
+        )
 
         return tray
