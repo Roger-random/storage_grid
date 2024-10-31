@@ -26,6 +26,7 @@ class DovetailStorageGrid:
                  chamfer_top = 1, chamfer_bottom=1.5,
                  dovetail_protrusion = 2,
                  dovetail_length_fraction = 0.5,
+                 dovetail_angle = 45,
                  dovetail_gap = 0.05):
         if tray_gap < 0:
             raise ValueError("Trays with negative gaps will not fit together.")
@@ -39,6 +40,7 @@ class DovetailStorageGrid:
         self.chamfer_bottom = chamfer_bottom
         self.dovetail_protrusion = dovetail_protrusion
         self.dovetail_length_fraction = dovetail_length_fraction
+        self.dovetail_angle = dovetail_angle
         self.dovetail_gap = dovetail_gap
 
     # Returns the nominal volume for size specified in number of grid cells.
@@ -92,7 +94,7 @@ class DovetailStorageGrid:
             .trapezoid(
                 w = width,
                 h = self.dovetail_protrusion+self.tray_gap+self.dovetail_gap*2,
-                a1 = 45)
+                a1 = self.dovetail_angle)
             .finalize()
             .extrude(self.grid_z)
             .translate((0, -(self.dovetail_protrusion-self.tray_gap)/2,0))
