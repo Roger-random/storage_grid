@@ -1,17 +1,11 @@
 from cadquery import exporters
 from dovetailstoragegrid import DovetailStorageGrid as dsg
 
-cell_size_x = 32 # mm
-cell_size_y = 32 # mm
-cell_size_z = 63 # mm
+d = dsg(x = 15, y = 15, z = 63,
+        dovetail_angle=60, dovetail_protrusion=2.5, dovetail_gap = 0.15)
 
-dovetail_gap = 0.1 # mm
-
-d = dsg(x = cell_size_x, y = cell_size_y, z = cell_size_z,
-        dovetail_gap = dovetail_gap)
-
-for x_size in range(1, 4, 1):
-    for y_size in range(1, 4, 1):
+for x_size in range(2, 7, 2):
+    for y_size in range(2, 7, 2):
         filename = "./dsg_x{:d}y{:d}.stl".format(x_size, y_size)
         print("Generating: {:s}".format(filename))
 
