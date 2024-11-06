@@ -139,11 +139,12 @@ class DovetailStorageGrid:
         return tray
 
     # Create a tray with given size specified in number of grid cells
-    # Plus if there is room, cut a small area in the front suitable for a
-    # label and acting as a handle.
+    # Then cut a small area in the front suitable for a label which also works
+    # as a handle.
     def label_tray(self, x=1, y=1, label_height=10):
         label_size = label_height/math.sqrt(2)
 
+        # Cut out a wedge for the label area.
         tray = self.tray(x,y) - (
             cq.Workplane("YZ")
             .lineTo(  label_size,               self.grid_z, forConstruction = True)
@@ -153,14 +154,18 @@ class DovetailStorageGrid:
             .extrude(x*self.grid_x)
         )
 
+        # Cutting out a wedge for the label may leave a tiny peak at the front-
+        # most dovetail slot. This must be removed for printing in vase mode.
+        # Feels like this can be done more elegantly but in the meantime this
+        # will suffice for avoiding the problem.
         tray = tray - (
-            cq.Workplane("YZ").workplane(offset=x*self.grid_x)
+            cq.Workplane("YZ").workplane(offset = x * self.grid_x)
             .lineTo(  label_size,               self.grid_z, forConstruction = True)
             .lineTo( -self.dovetail_protrusion, self.grid_z)
-            .lineTo( -self.dovetail_protrusion, self.grid_z - self.dovetail_protrusion*2 - label_size)
-            .lineTo(  label_size, self.grid_z - self.dovetail_protrusion*2 - label_size)
+            .lineTo( -self.dovetail_protrusion, self.grid_z - self.dovetail_protrusion * 2 - label_size)
+            .lineTo(  label_size,               self.grid_z - self.dovetail_protrusion * 2 - label_size)
             .close()
-            .workplane(offset = -self.dovetail_protrusion - self.dovetail_gap - self.tray_gap)
+            .workplane(offset = -self.dovetail_protrusion - self.dovetail_gap - self.tray_gap * 2)
             .lineTo(  label_size,               self.grid_z, forConstruction = True)
             .lineTo( -self.dovetail_protrusion, self.grid_z)
             .lineTo( -self.dovetail_protrusion, self.grid_z - self.dovetail_protrusion - label_size)
