@@ -232,7 +232,8 @@ class DovetailStorageGrid:
         :param x: Number of grid cells along X (left/right) axis.
         :param y: Number of grid cells along Y (front/back) axis.
         :param wall_thickness: Default 0 generates a solid for vase mode print.
-            Nonzero generates wall of specified thickness to be printed normally.
+            Nonzero generates wall of specified thickness (in mm) to be printed
+            normally. Recommend a multiple of nozzle diameter: 0.8, 1.2, etc.
         """
         tray = self._tray(x,y)
 
@@ -250,7 +251,8 @@ class DovetailStorageGrid:
         :param x: Number of grid cells along X (left/right) axis.
         :param y: Number of grid cells along Y (front/back) axis.
         :param wall_thickness: Default 0 generates a solid for vase mode print.
-            Nonzero generates wall of specified thickness to be printed normally.
+            Nonzero generates wall of specified thickness (in mm) to be printed
+            normally. Recommend a multiple of nozzle diameter: 0.8, 1.2, etc.
         :param label_height: Height of label area, in mm.
         """
         label_size = label_height/math.sqrt(2)
