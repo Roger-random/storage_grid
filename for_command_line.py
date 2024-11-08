@@ -44,12 +44,12 @@ from cadquery import exporters
 from dovetailstoragegrid import DovetailStorageGrid as dsg
 
 # Create an instance of the generator with common parameters
-d = dsg(x = 15, y = 15, z = 63,
-        dovetail_angle=60, dovetail_protrusion=2.5, dovetail_gap = 0.15)
+d = dsg(x = 15, y = 15, z = 62, tray_gap = 0.2,
+        dovetail_angle=60, dovetail_protrusion=2.5, dovetail_gap = 0.2)
 
 # Create a range of tray sizes and export to STL for vase mode 3D printing
-for x_size in range(2, 5, 2):
-    for y_size in range(2, 5, 1):
+for x_size in range(1, 5, 1):
+    for y_size in range(1, 5, 1):
         filename = "./dsg_x{:d}y{:d}.stl".format(x_size, y_size)
         print("Generating: {:s}".format(filename))
 
