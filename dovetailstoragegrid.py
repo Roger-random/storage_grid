@@ -225,12 +225,14 @@ class DovetailStorageGrid:
 
         return tray
 
-    def label_tray(self, x=1, y=1, label_height=10):
+    def label_tray(self, x=1, y=1, wall_thickness=0, label_height=10):
         """
         Return a tray with label area of specified size.
 
         :param x: Number of grid cells along X (left/right) axis.
         :param y: Number of grid cells along Y (front/back) axis.
+        :param wall_thickness: Default 0 generates a solid for vase mode print.
+            Nonzero generates wall of specified thickness to be printed normally.
         :param label_height: Height of label area, in mm.
         """
         label_size = label_height/math.sqrt(2)
@@ -256,7 +258,7 @@ class DovetailStorageGrid:
             .lineTo( -self.dovetail_protrusion, self.grid_z - self.dovetail_protrusion * 2 - label_size)
             .lineTo(  label_size,               self.grid_z - self.dovetail_protrusion * 2 - label_size)
             .close()
-            .workplane(offset = -self.dovetail_protrusion - self.dovetail_gap - self.tray_gap * 2)
+            .workplane(offset = -self.dovetail_protrusion - self.dovetail_gap - self.tray_gap)
             .lineTo(  label_size,               self.grid_z, forConstruction = True)
             .lineTo( -self.dovetail_protrusion, self.grid_z)
             .lineTo( -self.dovetail_protrusion, self.grid_z - self.dovetail_protrusion - label_size)
@@ -264,5 +266,10 @@ class DovetailStorageGrid:
             .close()
             .loft()
         )
+
+        # If a nonzero wall thickness was specified, use the .shell() operator
+        # to generate a tray to be printed normally (vs. vase mode solid)
+        if wall_thickness > 0:
+            tray = tray.faces(">Z").shell(-wall_thickness)
 
         return tray
