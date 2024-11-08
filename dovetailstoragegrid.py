@@ -199,7 +199,7 @@ class DovetailStorageGrid:
 
     def _tray(self, x=1, y=1):
         """
-        Create a dovetail tray with given size specified in number of grid cells.
+        Create a dovetail tray solid with given size specified in number of grid cells.
         """
         tray = self.nominal_volume(x, y)
         tray = tray.edges("|Z").fillet(self.corner_fillet)
@@ -225,9 +225,27 @@ class DovetailStorageGrid:
 
         return tray
 
+    def basic_tray(self, x=1, y=1, wall_thickness=0):
+        """
+        Return a basic (no additional feature) tray
+
+        :param x: Number of grid cells along X (left/right) axis.
+        :param y: Number of grid cells along Y (front/back) axis.
+        :param wall_thickness: Default 0 generates a solid for vase mode print.
+            Nonzero generates wall of specified thickness to be printed normally.
+        """
+        tray = self._tray(x,y)
+
+        # If a nonzero wall thickness was specified, use the .shell() operator
+        # to generate a tray to be printed normally (vs. vase mode solid)
+        if wall_thickness > 0:
+            tray = tray.faces(">Z").shell(-wall_thickness)
+
+        return tray
+
     def label_tray(self, x=1, y=1, wall_thickness=0, label_height=10):
         """
-        Return a tray with label area of specified size.
+        Return a tray with a top front label area of specified size.
 
         :param x: Number of grid cells along X (left/right) axis.
         :param y: Number of grid cells along Y (front/back) axis.
