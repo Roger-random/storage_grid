@@ -267,29 +267,31 @@ class DovetailStorageGrid:
             .extrude(x*self.grid_x)
         )
 
-        # Cutting out a wedge for the label may leave a tiny peak at the front-
-        # most dovetail slot. This must be removed for printing in vase mode.
-        # Feels like this can be done more elegantly but in the meantime this
-        # will suffice for avoiding the problem.
-        tray = tray - (
-            cq.Workplane("YZ").workplane(offset = x * self.grid_x)
-            .lineTo(  label_size,               self.grid_z, forConstruction = True)
-            .lineTo( -self.dovetail_protrusion, self.grid_z)
-            .lineTo( -self.dovetail_protrusion, self.grid_z - self.dovetail_protrusion * 2 - label_size)
-            .lineTo(  label_size,               self.grid_z - self.dovetail_protrusion * 2 - label_size)
-            .close()
-            .workplane(offset = -self.dovetail_protrusion - self.dovetail_gap - self.tray_gap)
-            .lineTo(  label_size,               self.grid_z, forConstruction = True)
-            .lineTo( -self.dovetail_protrusion, self.grid_z)
-            .lineTo( -self.dovetail_protrusion, self.grid_z - self.dovetail_protrusion - label_size)
-            .lineTo(  label_size,               self.grid_z - self.dovetail_protrusion - label_size)
-            .close()
-            .loft()
-        )
-
-        # If a nonzero wall thickness was specified, use the .shell() operator
-        # to generate a tray to be printed normally (vs. vase mode solid)
         if wall_thickness > 0:
+            # If a nonzero wall thickness was specified, use the .shell() operator
+            # to generate a tray to be printed normally (vs. vase mode solid)
             tray = tray.faces(">Z").shell(-wall_thickness)
+        else:
+            # Zero wall thickness generates a solid for vase mode printing.
+            # Cutting out a wedge for the label may leave a tiny peak at the front-
+            # most dovetail slot. This must be removed for printing in vase mode.
+            # Feels like this can be done more elegantly but in the meantime this
+            # will suffice for avoiding the problem.
+            tray = tray - (
+                cq.Workplane("YZ").workplane(offset = x * self.grid_x)
+                .lineTo(  label_size,               self.grid_z, forConstruction = True)
+                .lineTo( -self.dovetail_protrusion, self.grid_z)
+                .lineTo( -self.dovetail_protrusion, self.grid_z - self.dovetail_protrusion * 2 - label_size)
+                .lineTo(  label_size,               self.grid_z - self.dovetail_protrusion * 2 - label_size)
+                .close()
+                .workplane(offset = -self.dovetail_protrusion - self.dovetail_gap - self.tray_gap)
+                .lineTo(  label_size,               self.grid_z, forConstruction = True)
+                .lineTo( -self.dovetail_protrusion, self.grid_z)
+                .lineTo( -self.dovetail_protrusion, self.grid_z - self.dovetail_protrusion - label_size)
+                .lineTo(  label_size,               self.grid_z - self.dovetail_protrusion - label_size)
+                .close()
+                .loft()
+            )
+
 
         return tray
