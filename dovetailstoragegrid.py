@@ -244,7 +244,7 @@ class DovetailStorageGrid:
 
         return tray
 
-    def label_tray(self, x=1, y=1, wall_thickness=0, label_height=10):
+    def label_tray(self, x=1, y=1, wall_thickness=0, label_height=13, label_angle=30):
         """
         Return a tray with a top front label area of specified size.
 
@@ -254,17 +254,20 @@ class DovetailStorageGrid:
             Nonzero generates wall of specified thickness (in mm) to be printed
             normally. Recommend a multiple of nozzle diameter: 0.8, 1.2, etc.
         :param label_height: Height of label area, in mm.
+        :param label_angle: Tilt of label area, in degrees relative to vertical.
         """
-        label_size = label_height/math.sqrt(2)
+        label_angle_radians = label_angle * math.pi / 180
+        label_y = label_height * math.sin(label_angle_radians)
+        label_z = (label_y + self.dovetail_protrusion) / math.tan(label_angle_radians)
 
         # Cut out a wedge for the label area.
         tray = self._tray(x,y) - (
             cq.Workplane("YZ")
-            .lineTo(  label_size,               self.grid_z, forConstruction = True)
+            .lineTo(  label_y,                  self.grid_z, forConstruction = True)
             .lineTo( -self.dovetail_protrusion, self.grid_z)
-            .lineTo( -self.dovetail_protrusion, self.grid_z - self.dovetail_protrusion - label_size)
+            .lineTo( -self.dovetail_protrusion, self.grid_z - self.dovetail_protrusion - label_z)
             .close()
-            .extrude(x*self.grid_x)
+            .extrude(x*self.grid_x, both=True)
         )
 
         if wall_thickness > 0:
@@ -277,18 +280,19 @@ class DovetailStorageGrid:
             # most dovetail slot. This must be removed for printing in vase mode.
             # Feels like this can be done more elegantly but in the meantime this
             # will suffice for avoiding the problem.
+            vase_hack_z = label_height * math.cos(label_angle_radians) + self.dovetail_protrusion
             tray = tray - (
                 cq.Workplane("YZ").workplane(offset = x * self.grid_x)
-                .lineTo(  label_size,               self.grid_z, forConstruction = True)
+                .lineTo(  label_y,                  self.grid_z, forConstruction = True)
                 .lineTo( -self.dovetail_protrusion, self.grid_z)
-                .lineTo( -self.dovetail_protrusion, self.grid_z - self.dovetail_protrusion * 2 - label_size)
-                .lineTo(  label_size,               self.grid_z - self.dovetail_protrusion * 2 - label_size)
+                .lineTo( -self.dovetail_protrusion, self.grid_z - self.dovetail_protrusion - vase_hack_z)
+                .lineTo(  label_y,                  self.grid_z - self.dovetail_protrusion - vase_hack_z)
                 .close()
                 .workplane(offset = -self.dovetail_protrusion - self.dovetail_gap - self.tray_gap)
-                .lineTo(  label_size,               self.grid_z, forConstruction = True)
+                .lineTo(  label_y,                  self.grid_z, forConstruction = True)
                 .lineTo( -self.dovetail_protrusion, self.grid_z)
-                .lineTo( -self.dovetail_protrusion, self.grid_z - self.dovetail_protrusion - label_size)
-                .lineTo(  label_size,               self.grid_z - self.dovetail_protrusion - label_size)
+                .lineTo( -self.dovetail_protrusion, self.grid_z - vase_hack_z)
+                .lineTo(  label_y,                  self.grid_z - vase_hack_z)
                 .close()
                 .loft()
             )
