@@ -38,13 +38,17 @@ cell_size = 15 #mm
 
 dsg_01 = dsg(x = cell_size, y = cell_size, z = 75)
 
-tray_x = 2
-tray_y = 1
+tray_x = 4
+tray_y = 4
 
-tray = dsg_01.label_tray(tray_x, tray_y)
+tray_vase = dsg_01.label_tray(tray_x, tray_y)
 
-show_object(tray, options = {"alpha":0.5, "color":"blue"})
+show_object(tray_vase, options = {"alpha":0.5, "color":"blue"})
 
-show_object(tray.translate((cell_size*tray_x,0,0)), options = {"alpha":0.5, "color":"yellow"})
+tray_2wall = dsg_01.label_tray(tray_x, tray_y, wall_thickness=0.8)
 
-show_object(tray.translate((0,cell_size*tray_y,0)), options = {"alpha":0.5, "color":"red"})
+show_object(tray_2wall.translate((cell_size*tray_x,0,0)), options = {"alpha":0.5, "color":"yellow"})
+
+tray_3wall = dsg_01.label_tray(tray_x, tray_y, wall_thickness=1.2)
+
+show_object(tray_3wall.translate((0,cell_size*tray_y,0)), options = {"alpha":0.5, "color":"red"})
