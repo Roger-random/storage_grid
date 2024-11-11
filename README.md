@@ -1,15 +1,24 @@
 # Storage Grid
 
-Parametrically generate small storage trays that fit together on a conceptual
-rectangular grid.
+Parametrically generate small storage trays that fit together.
+
+![storage grid under evaluation with half drawer of fasteners](./img/storage%20grid%20under%20evaluation%20with%20half%20drawer%20of%20fasteners.jpg)
+
+_Drawer of fasteners showing partial adoption, before (right) and after (left)_
 
 ### Parametric Solids
 
 Size of each cell on the grid can be adjusted from default of 15mm by 15mm,
-and from there trays are specified in number of grid cells they occupy. Each
-generated STL is a solid shape intended for 3D printing in a special mode that
-may be named "single-wall", "spiral", or "vase mode" depending on slicer
-software used.
+and from there trays are specified in number of grid cells they occupy.
+This example is a 4x4 tray.
+
+![Example 4x4 storage tray](./img/storage%20grid%20tray%204x4.png)
+
+By default, generated STLs are solid shapes intended for 3D printing in a
+special mode that may be named "single-wall", "spiral", or "vase mode"
+depending on slicer software used. If that is not strong enough, an optional
+thickness parameter may be specified to generate STL with thicker walls to
+be printed normally.
 
 ### Dovetailed sides
 
