@@ -197,9 +197,11 @@ class DovetailStorageGrid:
             self._dovetail(width = self.grid_y * self.dovetail_length_fraction)
             .rotate((0, 0, 0), (0, 0, 1), -90))
 
-    def _tray(self, x=1, y=1):
+    def _tray(self, x, y,
+              dovetails_front, dovetails_back, dovetails_left, dovetails_right):
         """
         Create a dovetail tray solid with given size specified in number of grid cells.
+        Boolean parameters dovetails_* can be set to false to omit dovetails on that side
         """
         tray = self.nominal_volume(x, y)
         tray = tray.edges("|Z").fillet(self.corner_fillet)
@@ -212,20 +214,28 @@ class DovetailStorageGrid:
         dovetail_y = self._dovetail_y()
         for x_index in range(x):
             x_position = self.grid_x/2 + x_index*self.grid_x
-            tray = tray + self._grow_xy_by(dovetail_y,-self.dovetail_gap).translate((x_position, 0,      0))
-            tray = tray - self._grow_xy_by(dovetail_y, self.dovetail_gap).translate((x_position, tray_y, 0))
+            if dovetails_front:
+                tray = tray + self._grow_xy_by(dovetail_y,-self.dovetail_gap).translate((x_position, 0,      0))
+            if dovetails_back:
+                tray = tray - self._grow_xy_by(dovetail_y, self.dovetail_gap).translate((x_position, tray_y, 0))
 
         dovetail_x = self._dovetail_x()
         for y_index in range(y):
             y_position = self.grid_y/2 + y_index*self.grid_y
-            tray = tray + self._grow_xy_by(dovetail_x,-self.dovetail_gap).translate((0,      y_position, 0))
-            tray = tray - self._grow_xy_by(dovetail_x, self.dovetail_gap).translate((tray_x, y_position, 0))
+            if dovetails_left:
+                tray = tray + self._grow_xy_by(dovetail_x,-self.dovetail_gap).translate((0,      y_position, 0))
+            if dovetails_right:
+                tray = tray - self._grow_xy_by(dovetail_x, self.dovetail_gap).translate((tray_x, y_position, 0))
 
         tray = tray.intersect(self.bounding_volume(x,y))
 
         return tray
 
-    def basic_tray(self, x=1, y=1, wall_thickness=0):
+    def basic_tray(self, x=1, y=1, wall_thickness=0,
+            dovetails_front = True,
+            dovetails_back = True,
+            dovetails_left = True,
+            dovetails_right = True):
         """
         Return a basic (no additional feature) tray
 
@@ -234,8 +244,12 @@ class DovetailStorageGrid:
         :param wall_thickness: Default 0 generates a solid for vase mode print.
             Nonzero generates wall of specified thickness (in mm) to be printed
             normally. Recommend a multiple of nozzle diameter: 0.8, 1.2, etc.
+        :param dovetails_front: True (default) for dovetails, False to leave a smooth side.
+        :param dovetails_back: True (default) for dovetails, False to leave a smooth side.
+        :param dovetails_left: True (default) for dovetails, False to leave a smooth side.
+        :param dovetails_right: True (default) for dovetails, False to leave a smooth side.
         """
-        tray = self._tray(x,y)
+        tray = self._tray(x,y,dovetails_front, dovetails_back, dovetails_left, dovetails_right)
 
         # If a nonzero wall thickness was specified, use the .shell() operator
         # to generate a tray to be printed normally (vs. vase mode solid)
@@ -244,7 +258,11 @@ class DovetailStorageGrid:
 
         return tray
 
-    def label_tray(self, x=1, y=1, wall_thickness=0, label_height=13, label_angle=30):
+    def label_tray(self, x=1, y=1, wall_thickness=0, label_height=13, label_angle=30,
+            dovetails_front = True,
+            dovetails_back = True,
+            dovetails_left = True,
+            dovetails_right = True):
         """
         Return a tray with a top front label area of specified size.
 
@@ -255,13 +273,17 @@ class DovetailStorageGrid:
             normally. Recommend a multiple of nozzle diameter: 0.8, 1.2, etc.
         :param label_height: Height of label area, in mm.
         :param label_angle: Tilt of label area, in degrees relative to vertical.
+        :param dovetails_front: True (default) for dovetails, False to leave a smooth side.
+        :param dovetails_back: True (default) for dovetails, False to leave a smooth side.
+        :param dovetails_left: True (default) for dovetails, False to leave a smooth side.
+        :param dovetails_right: True (default) for dovetails, False to leave a smooth side.
         """
         label_angle_radians = label_angle * math.pi / 180
         label_y = label_height * math.sin(label_angle_radians)
         label_z = (label_y + self.dovetail_protrusion) / math.tan(label_angle_radians)
 
         # Cut out a wedge for the label area.
-        tray = self._tray(x,y) - (
+        tray = self._tray(x,y,dovetails_front, dovetails_back, dovetails_left, dovetails_right) - (
             cq.Workplane("YZ")
             .lineTo(  label_y,                  self.grid_z, forConstruction = True)
             .lineTo( -self.dovetail_protrusion, self.grid_z)
@@ -274,10 +296,11 @@ class DovetailStorageGrid:
             # If a nonzero wall thickness was specified, use the .shell() operator
             # to generate a tray to be printed normally (vs. vase mode solid)
             tray = tray.faces(">Z").shell(-wall_thickness)
-        else:
+        elif dovetails_right:
             # Zero wall thickness generates a solid for vase mode printing.
-            # Cutting out a wedge for the label may leave a tiny peak at the front-
-            # most dovetail slot. This must be removed for printing in vase mode.
+            # Cutting out a wedge for the label may leave a tiny peak at the
+            # front-most dovetail slot on the right side.
+            # If present, this must be removed for printing in vase mode.
             # Feels like this can be done more elegantly but in the meantime this
             # will suffice for avoiding the problem.
             vase_hack_z = label_height * math.cos(label_angle_radians) + self.dovetail_protrusion
