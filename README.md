@@ -36,10 +36,101 @@ together to assemble a single large organizer.
 
 This project was written with CadQuery
 (https://cadquery.readthedocs.io/en/stable/index.html)
-and there are multiple options for usage, see below.
+and there are multiple options for running this code, see below.
 
 In all cases you will need to have basic understanding of Python programming
 language in order to customize parameters to suit your project.
+
+## Step 1: Decide Grid Cell Size
+
+Every storage tray STL output by the generator is sized to fit a common grid,
+so the first decision is the size of each cell in that grid. The default size
+of 15mm x 15mm should work for most scenarios, but can be fine-tuned.
+
+Example: if the goal is to tightly fill a 160mm x 180mm box, it may make sense
+to use a cell size of 16mm x 18mm so the box is evenly divided into a 10 x 10
+grid.
+
+Normal Range: Grid cell size a few millimeters larger or smaller than default
+of 15mm (~12mm-~18mm) should work well. Significant changes beyond that may
+will require adjusting dovetail dimensions to suit. Larger grid cell sizes
+may result in long flat sides, which risks warping during vase mode printing.
+To avoid this, consider using smaller cell sizes to generate same size trays.
+
+## Step 2: Decide Tray Height
+
+Each tray should be at least double the cell size. So at default cell size of
+15mm x 15mm, trays should be 30mm tall or taller for all the relevant geometry
+calculations to work. That calculation does not place an upper bound so maximum
+height would be dictated by practicalities like user-friendliness, 3D printer
+capability, the storage voluem, etc.
+
+There's nothing special about the default value of 75mm. That just happens to
+be the height of the storage drawer I wanted to organize.
+
+## Step 3: Decide Gap Size (Tightness of Fit)
+
+By default the trays are generated with a small gap all around so they can be
+individually removed, used, and placed back in their slot. Alternatively, the
+gap can be set to zero so all generated trays fit tightly together and
+assemble into a larger organizer tray.
+
+## Step 4: Create Generator Instance
+
+Once those basic decisions have been made, create an instance of the generator
+class with chosen values.
+
+```
+from dovetailstoragegrid import DovetailStorageGrid as dsg
+
+# These are the default values, presented as example. Units in mm
+dsg_01 = dsg(x = 15, y = 15, z = 75, tray_gap = 0.1)
+
+```
+
+Additional fine-tuning parameters are available, but you can leave them at
+their defaults for initial experimentation. See code comments for details.
+
+## Step 5: Generate Trays
+
+Once the generator class has been created, call one of its methods to generate
+a CadQuery shape based on parameters.
+
+### Label Tray
+
+```
+tray = dsg_01.label_tray(2, 3)
+```
+
+Tray with a small angled surface at its top front, designed for a label and
+can also serve as a small handle for lifting that tray via fingertip.
+
+The first two parameters are required, specifying the number of grid cells
+this tray would occupy. In this example, Parameters `(2,3)` generates a 2x3
+tray. Given the cell size of 15mm x 15mm, this results in a 30mm x 45mm tray.
+
+Optional parameter `wall_thickness` defaults to zero, which generates a solid
+shape that is intended to be printed in vase mode. Alternative it can be
+exported to another CAD software for further customization, where you can
+cut whatever features you want to generate a custom tray that has dovetails to
+fit with other trays on the storage grid.
+
+If vase mode printing is not strong
+enough, specify a nonzero wall thickness in mm. Recommend a multiple of your
+3D printer nozzle size. So for the typical 0.4mm nozzle, `wall_thickness=0.8`
+will result in two perimeter layer wall. `wall_thickness=1.2` for three
+perimeter wall, etc.
+
+### Basic Tray
+
+```
+tray = dsg_01.basic_tray(2, 3)
+```
+A basic tray doesn't have a small label area in front, which may be desirable
+especially for the export-and-modify usage scenario. All other parameters are
+identical to those for label tray.
+
+# Running the Generator
 
 ### Option 1: CadQuery graphical interface CQ-Editor
 
@@ -83,7 +174,8 @@ magical AI special sauce.
 The following instructions are for one particular service,
 [Google Colab](https://colab.research.google.com/) but should be similar
 for other Jupyter services. The tricky part is installing CadQuery into the
-hosted environment, as different providers will have different restrictions.
+hosted environment, as different providers will have different restrictions
+on what external libraries are permitted.
 
 As of this writing, Google Colab has a free tier sufficient to run this project.
 As does [GitHub Codespaces](https://github.com/codespaces).
