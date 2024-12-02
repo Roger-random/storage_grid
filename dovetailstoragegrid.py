@@ -292,17 +292,13 @@ class DovetailStorageGrid:
             .extrude(x*self.grid_x, both=True)
         )
 
-        if wall_thickness > 0:
-            # If a nonzero wall thickness was specified, use the .shell() operator
-            # to generate a tray to be printed normally (vs. vase mode solid)
-            tray = tray.faces(">Z").shell(-wall_thickness)
-        elif dovetails_right:
-            # Zero wall thickness generates a solid for vase mode printing.
+        if dovetails_right:
             # Cutting out a wedge for the label may leave a tiny peak at the
-            # front-most dovetail slot on the right side.
-            # If present, this must be removed for printing in vase mode.
-            # Feels like this can be done more elegantly but in the meantime this
-            # will suffice for avoiding the problem.
+            # front-most dovetail slot on the right side. This prevents vase
+            # mode printing. When printing multiple non-vase units together
+            # in place, the little peak may stick to the adjacent tray.
+            # (Feels like this can be done more elegantly but in the meantime this
+            # will suffice for avoiding the problem.)
             vase_hack_z = label_height * math.cos(label_angle_radians) + self.dovetail_protrusion
             tray = tray - (
                 cq.Workplane("YZ").workplane(offset = x * self.grid_x)
@@ -320,5 +316,9 @@ class DovetailStorageGrid:
                 .loft()
             )
 
+        if wall_thickness > 0:
+            # If a nonzero wall thickness was specified, use the .shell() operator
+            # to generate a tray to be printed normally (vs. vase mode solid)
+            tray = tray.faces(">Z").shell(-wall_thickness)
 
         return tray
