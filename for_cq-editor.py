@@ -42,7 +42,7 @@ from dovetailstoragegrid import DovetailStorageGrid as dsg
 
 cell_size = 15 #mm
 
-dsg_01 = dsg(x = cell_size, y = cell_size, z = 75)
+dsg_01 = dsg(x = cell_size, y = cell_size, z = 75, chamfer_bottom=0.6)
 
 tray_x = 3
 tray_y = 3
@@ -52,37 +52,24 @@ thickness = 0.8
 # Generate standard tray
 standard = dsg_01.label_tray(tray_x, tray_y, wall_thickness=thickness)
 
-# Generate support for one corner of the tray
-support = (
-    cq.Workplane("XY")
-    .lineTo(0,3)
-    .lineTo(3,3)
-    .lineTo(3,0)
-    .close()
-    .extrude(1.5)
-    )
-
-# Get the bounding box, grow it by bit, and subtract to get support curvature
-bound = dsg_01._grow_xy_by(dsg_01.bounding_volume(tray_x, tray_y),0.4)
-support = support - bound
-
 # Add a pointy tip brim to help belt printing get started
 brim = (
     cq.Workplane("XY")
-    .lineTo(0 ,3)
-    .lineTo(-2,-2)
-    .lineTo(3,0)
+    .lineTo(0 ,5, forConstruction=True)
+    .lineTo(-3,-3)
+    .lineTo(5,0)
+    .lineTo(5,4)
     .close()
     .extrude(0.6)
     )
-support = support+brim
+support = brim
 
 # Due to dovetail orientation I think the back right corner is the best
 # starting point for belt printer
 support = support.rotate((0,0,0),(0,0,1),180)
 standard = standard.translate((cell_size*-tray_x, cell_size*-tray_y,0))
 
-unit = support + standard
-unit = unit.rotate((0,0,0),(0,0,1),225)
+unit = brim + standard
+unit = unit.rotate((0,0,0),(0,0,1),45)
 
 show_object(unit)
