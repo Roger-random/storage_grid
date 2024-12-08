@@ -41,9 +41,7 @@ import cadquery as cq
 from dovetailstoragegrid import DovetailStorageGrid as dsg
 
 cell_size = 15 #mm
-tray_gap = 0.1 #mm
-chamfer_bottom = 0.6 #mm
-dsg_01 = dsg(x = cell_size, y = cell_size, z = 75, chamfer_bottom=chamfer_bottom, tray_gap = tray_gap)
+dsg_01 = dsg(x = cell_size, y = cell_size, z = 75)
 
 tray_x = 3
 tray_y = 3
@@ -53,24 +51,7 @@ thickness = 0.8
 # Generate standard tray
 standard = dsg_01.label_tray(tray_x, tray_y, wall_thickness=thickness)
 
-# Add a brim to help belt printing get started
-tray_w = tray_x*cell_size
-tray_h = tray_y*cell_size
-brim = (
-    cq.Workplane("XY")
-    .lineTo(tray_w*3/2 ,tray_h/2, forConstruction=True)
-    .lineTo(tray_w/2 , tray_h*3/2)
-    .lineTo(0,tray_h-tray_gap-chamfer_bottom)
-    .lineTo(tray_w-tray_gap-chamfer_bottom,tray_h-tray_gap-chamfer_bottom)
-    .lineTo(tray_w-tray_gap-chamfer_bottom,0)
-    .close()
-    .extrude(0.6)
-    )
-support = brim
+standard = standard.rotate((0,0,0),(1,0,0),117)
+standard = standard.rotate((0,0,0),(0,0,1),180)
 
-# Due to dovetail orientation I think the back right corner is the best
-# starting point for belt printer
-unit = brim + standard
-unit = unit.rotate((0,0,0),(0,0,1),45)
-
-show_object(unit)
+show_object(standard)
