@@ -31,7 +31,8 @@ documentation on what each parameter means.
 """
 
 """
-This specific example packs trays onto the 360mm x 360mm print bed of a Prusa XL
+This specific example generates a tray with small support element designed
+for a Creality CR-30 a.k.a. CrealityBelt a.k.a. Naomi Wu's 3DPrintMill
 """
 
 import math
@@ -48,30 +49,40 @@ tray_y = 3
 
 thickness = 0.8
 
-tray_count_x = math.floor(360 / (cell_size * tray_x))
-tray_count_y = math.floor(360 / (cell_size * tray_y))
-
-corner = dsg_01.label_tray(tray_x, tray_y, wall_thickness=thickness,
-                           dovetails_front= False, dovetails_left = False)
-
-assembly = corner
-
-front = dsg_01.label_tray(tray_x, tray_y, wall_thickness=thickness,
-                           dovetails_front= False)
-
-for front_row in range(1,tray_count_x):
-    assembly = assembly + front.translate((cell_size*tray_x*front_row,0,0))
-
-left = dsg_01.label_tray(tray_x, tray_y, wall_thickness=thickness,
-                           dovetails_left= False)
-
-for left_row in range(1,tray_count_y):
-    assembly = assembly + left.translate((0,cell_size*tray_y*left_row,0))
-
+# Generate standard tray
 standard = dsg_01.label_tray(tray_x, tray_y, wall_thickness=thickness)
 
-for inner_x in range(1,tray_count_x):
-    for inner_y in range(1,tray_count_y):
-        assembly = assembly + standard.translate((cell_size*tray_x*inner_x,cell_size*tray_y*inner_y,0))
+# Generate support for one corner of the tray
+support = (
+    cq.Workplane("XY")
+    .lineTo(0,3)
+    .lineTo(3,3)
+    .lineTo(3,0)
+    .close()
+    .extrude(1.5)
+    )
 
-show_object(assembly)
+# Get the bounding box, grow it by bit, and subtract to get support curvature
+bound = dsg_01._grow_xy_by(dsg_01.bounding_volume(tray_x, tray_y),0.4)
+support = support - bound
+
+# Add a pointy tip brim to help belt printing get started
+brim = (
+    cq.Workplane("XY")
+    .lineTo(0 ,3)
+    .lineTo(-2,-2)
+    .lineTo(3,0)
+    .close()
+    .extrude(0.6)
+    )
+support = support+brim
+
+# Due to dovetail orientation I think the back right corner is the best
+# starting point for belt printer
+support = support.rotate((0,0,0),(0,0,1),180)
+standard = standard.translate((cell_size*-tray_x, cell_size*-tray_y,0))
+
+unit = support + standard
+unit = unit.rotate((0,0,0),(0,0,1),225)
+
+show_object(unit)
