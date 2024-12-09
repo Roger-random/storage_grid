@@ -46,12 +46,44 @@ dsg_01 = dsg(x = cell_size, y = cell_size, z = 75)
 tray_x = 3
 tray_y = 3
 
-thickness = 0.8
+thickness = 0.7
 
 # Generate standard tray
-standard = dsg_01.label_tray(tray_x, tray_y, wall_thickness=thickness)
+tray = dsg_01.label_tray(tray_x, tray_y, wall_thickness=thickness)
 
-standard = standard.rotate((0,0,0),(1,0,0),117)
-standard = standard.rotate((0,0,0),(0,0,1),180)
+# Generate a support object with custom fit by subtracting the tray
+support_center = tray_y*cell_size
+support_size = 2
+support_gap = 0.4
+support = (
+    cq.Workplane("YZ")
+    .transformed(offset=cq.Vector(0, 0, -support_size))
+    .lineTo(support_center - support_size, 0, forConstruction = True)
+    .lineTo(support_center               , support_size)
+    .lineTo(support_center + support_size, 0)
+    .close()
+    .extrude(tray_x*cell_size+support_size*2)
+    )
+exterior = dsg_01._grow_xy_by(dsg_01.bounding_volume(tray_x, tray_y), support_gap)
+support = support - exterior
 
-show_object(standard)
+# Generate a brim that connects the first line to the support
+brim_height = 0.6
+brim = (
+    cq.Workplane("YZ")
+    .transformed(offset=cq.Vector(0, 0, -support_size))
+    .lineTo(support_center - support_size, 0, forConstruction = True)
+    .lineTo(support_center - support_size+ brim_height, brim_height)
+    .lineTo(support_center               , brim_height)
+    .lineTo(support_center               , 0)
+    .close()
+    .extrude(tray_x*cell_size+support_size*2)
+    )
+
+#show_object(brim)
+#show_object(support, options = {"alpha":0.5, "color":"aquamarine"})
+#show_object(tray, options = {"alpha":0.5, "color":"red"})
+
+assembly = tray + support + brim
+
+show_object(assembly)
