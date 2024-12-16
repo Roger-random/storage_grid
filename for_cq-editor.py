@@ -31,8 +31,7 @@ documentation on what each parameter means.
 """
 
 """
-This specific example generates a tray with small support element designed
-for a Creality CR-30 a.k.a. CrealityBelt a.k.a. Naomi Wu's 3DPrintMill
+This specific example packs trays onto the 360mm x 360mm print bed of a Prusa XL
 """
 
 import math
@@ -41,49 +40,38 @@ import cadquery as cq
 from dovetailstoragegrid import DovetailStorageGrid as dsg
 
 cell_size = 15 #mm
+
 dsg_01 = dsg(x = cell_size, y = cell_size, z = 75)
 
 tray_x = 3
 tray_y = 3
 
-thickness = 0.7
+thickness = 0.8
 
-# Generate standard tray
-tray = dsg_01.label_tray(tray_x, tray_y, wall_thickness=thickness)
+tray_count_x = math.floor(360 / (cell_size * tray_x))
+tray_count_y = math.floor(360 / (cell_size * tray_y))
 
-# Generate a support object with custom fit by subtracting the tray
-support_center = tray_y*cell_size
-support_size = 2
-support_gap = 0.4
-support = (
-    cq.Workplane("YZ")
-    .transformed(offset=cq.Vector(0, 0, -support_size))
-    .lineTo(support_center - support_size, 0, forConstruction = True)
-    .lineTo(support_center               , support_size)
-    .lineTo(support_center + support_size, 0)
-    .close()
-    .extrude(tray_x*cell_size+support_size*2)
-    )
-exterior = dsg_01._grow_xy_by(dsg_01.bounding_volume(tray_x, tray_y), support_gap)
-support = support - exterior
+corner = dsg_01.label_tray(tray_x, tray_y, wall_thickness=thickness,
+                           dovetails_front= False, dovetails_left = False)
 
-# Generate a brim that connects the first line to the support
-brim_height = 0.6
-brim = (
-    cq.Workplane("YZ")
-    .transformed(offset=cq.Vector(0, 0, -support_size))
-    .lineTo(support_center - support_size, 0, forConstruction = True)
-    .lineTo(support_center - support_size+ brim_height, brim_height)
-    .lineTo(support_center               , brim_height)
-    .lineTo(support_center               , 0)
-    .close()
-    .extrude(tray_x*cell_size+support_size*2)
-    )
+assembly = corner
 
-#show_object(brim)
-#show_object(support, options = {"alpha":0.5, "color":"aquamarine"})
-#show_object(tray, options = {"alpha":0.5, "color":"red"})
+front = dsg_01.label_tray(tray_x, tray_y, wall_thickness=thickness,
+                           dovetails_front= False)
 
-assembly = tray + support + brim
+for front_row in range(1,tray_count_x):
+    assembly = assembly + front.translate((cell_size*tray_x*front_row,0,0))
+
+left = dsg_01.label_tray(tray_x, tray_y, wall_thickness=thickness,
+                           dovetails_left= False)
+
+for left_row in range(1,tray_count_y):
+    assembly = assembly + left.translate((0,cell_size*tray_y*left_row,0))
+
+standard = dsg_01.label_tray(tray_x, tray_y, wall_thickness=thickness)
+
+for inner_x in range(1,tray_count_x):
+    for inner_y in range(1,tray_count_y):
+        assembly = assembly + standard.translate((cell_size*tray_x*inner_x,cell_size*tray_y*inner_y,0))
 
 show_object(assembly)
