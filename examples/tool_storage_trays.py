@@ -348,7 +348,24 @@ class tool_storage_trays:
 
         return exterior - block
 
+    def od_turning_trio(self):
+        """
+        Tray to keep a trio of OD turning tools together, along with their
+        associated small wrenches and box of inserts.
+        The Amazon product (https://amzn.to/4mosalK) has additional tools
+        but I keep the threading and boring bars in a separate section.
+        """
+        generator = dovetailstoragegrid.DovetailStorageGrid(
+            x=15,
+            y=15,
+            z=30,
+            dovetail_gap=self.dovetail_gap / 2,
+        )
+        exterior = generator.basic_tray(3, 7, wall_thickness=0.8)
+
+        return exterior
+
 
 trays = tool_storage_trays()
 
-show_object(trays.mini_magchuck(), options={"color": "green", "alpha": 0.5})
+show_object(trays.od_turning_trio(), options={"color": "green", "alpha": 0.5})
