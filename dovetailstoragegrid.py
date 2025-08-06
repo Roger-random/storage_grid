@@ -25,6 +25,7 @@ SOFTWARE.
 import math
 import cadquery as cq
 
+
 class DovetailStorageGrid:
     """
     Dove-tail storage grid
@@ -46,17 +47,20 @@ class DovetailStorageGrid:
     expected to view the array from above and in front.
     """
 
-    def __init__(self,
-                 x = 15,
-                 y = 15,
-                 z = 75,
-                 tray_gap = 0.1,
-                 corner_fillet = 2,
-                 chamfer_top = 1, chamfer_bottom=1.5,
-                 dovetail_protrusion = 2.5,
-                 dovetail_length_fraction = 0.5,
-                 dovetail_angle = 60,
-                 dovetail_gap = 0.2):
+    def __init__(
+        self,
+        x: float = 15,
+        y: float = 15,
+        z: float = 75,
+        tray_gap: float = 0.1,
+        corner_fillet: float = 2,
+        chamfer_top: float = 1,
+        chamfer_bottom: float = 1.5,
+        dovetail_protrusion: float = 2.5,
+        dovetail_length_fraction: float = 0.5,
+        dovetail_angle: float = 60,
+        dovetail_gap: float = 0.2,
+    ):
         """
         Configure parameters common to all generated trays.
 
@@ -113,7 +117,7 @@ class DovetailStorageGrid:
         """
         return (
             cq.Workplane("XY")
-            .lineTo(0,               self.grid_y * y)
+            .lineTo(0, self.grid_y * y)
             .lineTo(self.grid_x * x, self.grid_y * y)
             .lineTo(self.grid_x * x, 0)
             .close()
@@ -151,16 +155,18 @@ class DovetailStorageGrid:
         p = self.dovetail_protrusion
         bounds = (
             cq.Workplane("XY")
-            .lineTo(-p,                   -p, forConstruction = True)
-            .lineTo(-p,                    p + self.grid_y * y)
-            .lineTo( p + self.grid_x * x,  p + self.grid_y * y)
-            .lineTo( p + self.grid_x * x, -p)
+            .lineTo(-p, -p, forConstruction=True)
+            .lineTo(-p, p + self.grid_y * y)
+            .lineTo(p + self.grid_x * x, p + self.grid_y * y)
+            .lineTo(p + self.grid_x * x, -p)
             .close()
             .extrude(self.grid_z)
         )
 
         bounds = bounds.faces("+Z").chamfer(self.dovetail_protrusion + self.chamfer_top)
-        bounds = bounds.faces("-Z").chamfer(self.dovetail_protrusion + self.chamfer_bottom)
+        bounds = bounds.faces("-Z").chamfer(
+            self.dovetail_protrusion + self.chamfer_bottom
+        )
         bounds = bounds.edges("not (>Z or <Z)").fillet(self.corner_fillet)
         return bounds
 
@@ -171,34 +177,37 @@ class DovetailStorageGrid:
         aligned with the proper axis.
         """
         return (
-            cq.Workplane("XY").sketch()
+            cq.Workplane("XY")
+            .sketch()
             .trapezoid(
-                w = width,
-                h = self.dovetail_protrusion+self.tray_gap+self.dovetail_gap*2,
-                a1 = self.dovetail_angle)
+                w=width,
+                h=self.dovetail_protrusion + self.tray_gap + self.dovetail_gap * 2,
+                a1=self.dovetail_angle,
+            )
             .finalize()
             .extrude(self.grid_z)
-            .translate((0, -(self.dovetail_protrusion-self.tray_gap)/2,0))
-            )
+            .translate((0, -(self.dovetail_protrusion - self.tray_gap) / 2, 0))
+        )
 
     def _dovetail_y(self):
         """
         Create a trapezoidal volume for use as interlink dovetails on front
         and back (+Y and -Y) faces.
         """
-        return self._dovetail(width = self.grid_x * self.dovetail_length_fraction)
+        return self._dovetail(width=self.grid_x * self.dovetail_length_fraction)
 
     def _dovetail_x(self):
         """
         Create a trapezoidal volume for use as interlink dovetails on left
         and right (+X and -X) faces.
         """
-        return (
-            self._dovetail(width = self.grid_y * self.dovetail_length_fraction)
-            .rotate((0, 0, 0), (0, 0, 1), -90))
+        return self._dovetail(width=self.grid_y * self.dovetail_length_fraction).rotate(
+            (0, 0, 0), (0, 0, 1), -90
+        )
 
-    def _tray(self, x, y,
-              dovetails_front, dovetails_back, dovetails_left, dovetails_right):
+    def _tray(
+        self, x, y, dovetails_front, dovetails_back, dovetails_left, dovetails_right
+    ):
         """
         Create a dovetail tray solid with given size specified in number of grid cells.
         Boolean parameters dovetails_* can be set to false to omit dovetails on that side
@@ -206,36 +215,49 @@ class DovetailStorageGrid:
         tray = self.nominal_volume(x, y)
         tray = tray.edges("|Z").fillet(self.corner_fillet)
         if self.tray_gap > 0:
-            tray = self._grow_xy_by(tray,-self.tray_gap)
+            tray = self._grow_xy_by(tray, -self.tray_gap)
 
         tray_x = x * self.grid_x
         tray_y = y * self.grid_y
 
         dovetail_y = self._dovetail_y()
         for x_index in range(x):
-            x_position = self.grid_x/2 + x_index*self.grid_x
+            x_position = self.grid_x / 2 + x_index * self.grid_x
             if dovetails_front:
-                tray = tray + self._grow_xy_by(dovetail_y,-self.dovetail_gap).translate((x_position, 0,      0))
+                tray = tray + self._grow_xy_by(
+                    dovetail_y, -self.dovetail_gap
+                ).translate((x_position, 0, 0))
             if dovetails_back:
-                tray = tray - self._grow_xy_by(dovetail_y, self.dovetail_gap).translate((x_position, tray_y, 0))
+                tray = tray - self._grow_xy_by(dovetail_y, self.dovetail_gap).translate(
+                    (x_position, tray_y, 0)
+                )
 
         dovetail_x = self._dovetail_x()
         for y_index in range(y):
-            y_position = self.grid_y/2 + y_index*self.grid_y
+            y_position = self.grid_y / 2 + y_index * self.grid_y
             if dovetails_left:
-                tray = tray + self._grow_xy_by(dovetail_x,-self.dovetail_gap).translate((0,      y_position, 0))
+                tray = tray + self._grow_xy_by(
+                    dovetail_x, -self.dovetail_gap
+                ).translate((0, y_position, 0))
             if dovetails_right:
-                tray = tray - self._grow_xy_by(dovetail_x, self.dovetail_gap).translate((tray_x, y_position, 0))
+                tray = tray - self._grow_xy_by(dovetail_x, self.dovetail_gap).translate(
+                    (tray_x, y_position, 0)
+                )
 
-        tray = tray.intersect(self.bounding_volume(x,y))
+        tray = tray.intersect(self.bounding_volume(x, y))
 
         return tray
 
-    def basic_tray(self, x=1, y=1, wall_thickness=0,
-            dovetails_front = True,
-            dovetails_back = True,
-            dovetails_left = True,
-            dovetails_right = True):
+    def basic_tray(
+        self,
+        x=1,
+        y=1,
+        wall_thickness=0,
+        dovetails_front=True,
+        dovetails_back=True,
+        dovetails_left=True,
+        dovetails_right=True,
+    ):
         """
         Return a basic (no additional feature) tray
 
@@ -249,7 +271,9 @@ class DovetailStorageGrid:
         :param dovetails_left: True (default) for dovetails, False to leave a smooth side.
         :param dovetails_right: True (default) for dovetails, False to leave a smooth side.
         """
-        tray = self._tray(x,y,dovetails_front, dovetails_back, dovetails_left, dovetails_right)
+        tray = self._tray(
+            x, y, dovetails_front, dovetails_back, dovetails_left, dovetails_right
+        )
 
         # If a nonzero wall thickness was specified, use the .shell() operator
         # to generate a tray to be printed normally (vs. vase mode solid)
@@ -258,11 +282,18 @@ class DovetailStorageGrid:
 
         return tray
 
-    def label_tray(self, x=1, y=1, wall_thickness=0, label_height=13, label_angle=30,
-            dovetails_front = True,
-            dovetails_back = True,
-            dovetails_left = True,
-            dovetails_right = True):
+    def label_tray(
+        self,
+        x=1,
+        y=1,
+        wall_thickness=0,
+        label_height=13,
+        label_angle=30,
+        dovetails_front=True,
+        dovetails_back=True,
+        dovetails_left=True,
+        dovetails_right=True,
+    ):
         """
         Return a tray with a top front label area of specified size.
 
@@ -283,13 +314,18 @@ class DovetailStorageGrid:
         label_z = (label_y + self.dovetail_protrusion) / math.tan(label_angle_radians)
 
         # Cut out a wedge for the label area.
-        tray = self._tray(x,y,dovetails_front, dovetails_back, dovetails_left, dovetails_right) - (
+        tray = self._tray(
+            x, y, dovetails_front, dovetails_back, dovetails_left, dovetails_right
+        ) - (
             cq.Workplane("YZ")
-            .lineTo(  label_y,                  self.grid_z, forConstruction = True)
-            .lineTo( -self.dovetail_protrusion, self.grid_z)
-            .lineTo( -self.dovetail_protrusion, self.grid_z - self.dovetail_protrusion - label_z)
+            .lineTo(label_y, self.grid_z, forConstruction=True)
+            .lineTo(-self.dovetail_protrusion, self.grid_z)
+            .lineTo(
+                -self.dovetail_protrusion,
+                self.grid_z - self.dovetail_protrusion - label_z,
+            )
             .close()
-            .extrude(x*self.grid_x, both=True)
+            .extrude(x * self.grid_x, both=True)
         )
 
         if dovetails_right:
@@ -299,19 +335,27 @@ class DovetailStorageGrid:
             # in place, the little peak may stick to the adjacent tray.
             # (Feels like this can be done more elegantly but in the meantime this
             # will suffice for avoiding the problem.)
-            vase_hack_z = label_height * math.cos(label_angle_radians) + self.dovetail_protrusion
+            vase_hack_z = (
+                label_height * math.cos(label_angle_radians) + self.dovetail_protrusion
+            )
             tray = tray - (
-                cq.Workplane("YZ").workplane(offset = x * self.grid_x)
-                .lineTo(  label_y,                  self.grid_z, forConstruction = True)
-                .lineTo( -self.dovetail_protrusion, self.grid_z)
-                .lineTo( -self.dovetail_protrusion, self.grid_z - self.dovetail_protrusion - vase_hack_z)
-                .lineTo(  label_y,                  self.grid_z - self.dovetail_protrusion - vase_hack_z)
+                cq.Workplane("YZ")
+                .workplane(offset=x * self.grid_x)
+                .lineTo(label_y, self.grid_z, forConstruction=True)
+                .lineTo(-self.dovetail_protrusion, self.grid_z)
+                .lineTo(
+                    -self.dovetail_protrusion,
+                    self.grid_z - self.dovetail_protrusion - vase_hack_z,
+                )
+                .lineTo(label_y, self.grid_z - self.dovetail_protrusion - vase_hack_z)
                 .close()
-                .workplane(offset = -self.dovetail_protrusion - self.dovetail_gap - self.tray_gap)
-                .lineTo(  label_y,                  self.grid_z, forConstruction = True)
-                .lineTo( -self.dovetail_protrusion, self.grid_z)
-                .lineTo( -self.dovetail_protrusion, self.grid_z - vase_hack_z)
-                .lineTo(  label_y,                  self.grid_z - vase_hack_z)
+                .workplane(
+                    offset=-self.dovetail_protrusion - self.dovetail_gap - self.tray_gap
+                )
+                .lineTo(label_y, self.grid_z, forConstruction=True)
+                .lineTo(-self.dovetail_protrusion, self.grid_z)
+                .lineTo(-self.dovetail_protrusion, self.grid_z - vase_hack_z)
+                .lineTo(label_y, self.grid_z - vase_hack_z)
                 .close()
                 .loft()
             )
