@@ -261,7 +261,42 @@ class tool_storage_trays:
 
         return exterior - block
 
+    def chuck_block(self):
+        """
+        Aluminum block 1.23" x 2.45" x 5.43" made by Charles Boal for indexing
+        a lathe turrent post against lathe chuck face. Named "chuck block" for
+        both its creator and its purpose.
+        """
+        length_x = inch_to_mm(1.25)
+        length_y = inch_to_mm(5.45)
+        length_z = inch_to_mm(1.5)
+
+        cells_x = math.ceil(length_x / self.cell_size)
+        cells_y = math.ceil(length_y / self.cell_size)
+        generator = dovetailstoragegrid.DovetailStorageGrid(
+            x=self.cell_size,
+            y=self.cell_size,
+            z=length_z,
+            dovetail_gap=self.dovetail_gap / 2,
+        )
+
+        exterior = generator.basic_tray(cells_x, cells_y, wall_thickness=0)
+
+        block = (
+            cq.Workplane("XY")
+            .box(length=length_x, width=length_y, height=length_z)
+            .translate(
+                (
+                    self.cell_size * cells_x / 2,
+                    self.cell_size * cells_y / 2,
+                    2 + length_z / 2,
+                )
+            )
+        )
+
+        return exterior - block
+
 
 trays = tool_storage_trays()
 
-show_object(trays.pair_123_blocks(), options={"color": "green", "alpha": 0.5})
+show_object(trays.chuck_block(), options={"color": "green", "alpha": 0.5})
