@@ -296,7 +296,37 @@ class tool_storage_trays:
 
         return exterior - block
 
+    def machinist_square_4in(self):
+        """
+        Holds a 4" machinist square on its end so it takes up less space than
+        laying flat. This box is not very space efficient so leave unused
+        volume open for general use.
+        """
+        generator = dovetailstoragegrid.DovetailStorageGrid(
+            x=15,
+            y=15,
+            z=inch_to_mm(1.5),
+            dovetail_gap=self.dovetail_gap / 2,
+        )
+        exterior = generator.basic_tray(2, 7, wall_thickness=0)
+
+        end = (
+            cq.Workplane("XY")
+            .box(length=13, width=18.5, height=40)
+            .translate((15, 11, 22))
+        )
+
+        space = (
+            cq.Workplane("XY")
+            .box(length=22, width=78, height=40)
+            .translate((15, 62, 22))
+            .edges()
+            .fillet(2)
+        )
+
+        return exterior - end - space
+
 
 trays = tool_storage_trays()
 
-show_object(trays.chuck_block(), options={"color": "green", "alpha": 0.5})
+show_object(trays.machinist_square_4in(), options={"color": "green", "alpha": 0.5})
