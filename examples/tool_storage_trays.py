@@ -326,7 +326,29 @@ class tool_storage_trays:
 
         return exterior - end - space
 
+    def mini_magchuck(self):
+        """
+        Allows a salvaged mini magnetic chuck block to stand on its end
+        """
+        generator = dovetailstoragegrid.DovetailStorageGrid(
+            x=15,
+            y=15,
+            z=inch_to_mm(3),
+            dovetail_gap=self.dovetail_gap / 2,
+        )
+        exterior = generator.basic_tray(2, 4, wall_thickness=0)
+
+        block = (
+            cq.Workplane("XY")
+            .box(length=21.5, width=47.5, height=80)
+            .translate((15, 30, 42))
+            .edges()
+            .fillet(1)
+        )
+
+        return exterior - block
+
 
 trays = tool_storage_trays()
 
-show_object(trays.machinist_square_4in(), options={"color": "green", "alpha": 0.5})
+show_object(trays.mini_magchuck(), options={"color": "green", "alpha": 0.5})
