@@ -101,7 +101,7 @@ class signals_toolbox:
         """
         Fnirsi 2C53T portable meter scope
         """
-        return self.generic_tray(width=60, depth=90)
+        return self.generic_tray(width=60, depth=100)
 
     def magnet_wire_organizer(self):
         """
@@ -109,7 +109,26 @@ class signals_toolbox:
         """
         return self.generic_tray(width=35, depth=100)
 
+    def xacto_and_pens(self):
+        """
+        Small square to hold X-Acto blade, pen, and other similar long narrow
+        thing things upright
+        """
+        return self.generic_tray(width=30, depth=30)
+
+    def safety_glasses(self):
+        """
+        3M Tour-Guard safety glasses that fit over normal eyeglasses
+        """
+        return self.generic_tray(width=72, depth=45)
+
+    def screwdrivers(self):
+        """
+        Large racheting screwdriver and various small drivers.
+        """
+        return self.generic_tray(width=80, depth=40)
+
 
 st = signals_toolbox()
 
-show_object(st.magnet_wire_organizer(), options={"color": "green", "alpha": 0.5})
+show_object(st.safety_glasses(), options={"color": "green", "alpha": 0.5})
