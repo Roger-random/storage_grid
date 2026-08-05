@@ -32,7 +32,6 @@ import sys
 sys.path.append("../")  # Fragile, depends on directory structure
 import dovetailstoragegrid
 
-
 # When not running in CQ-Editor, turn log into print
 if "log" not in globals():
 
@@ -74,7 +73,7 @@ class signals_toolbox:
         return self.generator.basic_tray(
             math.ceil(width / self.cell_size),
             math.ceil(depth / self.cell_size),
-            wall_thickness=0,
+            wall_thickness=0.8,
         )
 
     def dual_jewel_box(self):
@@ -126,9 +125,9 @@ class signals_toolbox:
         """
         Large racheting screwdriver and various small drivers.
         """
-        return self.generic_tray(width=80, depth=40)
+        return self.generic_tray(width=100, depth=40)
 
 
 st = signals_toolbox()
 
-show_object(st.safety_glasses(), options={"color": "green", "alpha": 0.5})
+show_object(st.screwdrivers(), options={"color": "green", "alpha": 0.5})
