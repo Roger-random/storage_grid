@@ -62,7 +62,7 @@ class signals_toolbox:
     ):
         self.cell_size = cell_size
         self.dovetail_gap = dovetail_gap
-        self.height = 140
+        self.height = 110
 
         # Create instance of tray generator
         self.generator = dovetailstoragegrid.DovetailStorageGrid(
@@ -130,4 +130,4 @@ class signals_toolbox:
 
 st = signals_toolbox()
 
-show_object(st.screwdrivers(), options={"color": "green", "alpha": 0.5})
+show_object(st.xacto_and_pens(), options={"color": "green", "alpha": 0.5})
